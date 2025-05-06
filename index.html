@@ -2,50 +2,44 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ANGKRINGAN OMAHAN</title>
   <style>
     body {
       font-family: sans-serif;
-      margin: 0;
       padding: 1rem;
       background: #fefefe;
     }
-    h2 {
-      margin-top: 2rem;
+    h1 {
+      text-align: center;
     }
     .menu-section {
-      margin-top: 1rem;
+      margin-top: 2rem;
       padding: 1rem;
-      background-color: #f2f2f2;
+      background-color: #f9f9f9;
       border-radius: 8px;
     }
     .menu-item {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
     }
     .item-name {
       flex: 1;
     }
     .controls button {
-      padding: 0.2rem 0.5rem;
-      margin: 0 0.3rem;
-    }
-    .total {
-      font-weight: bold;
-      margin-top: 2rem;
+      padding: 0.2rem 0.6rem;
+      margin: 0 0.2rem;
     }
     .order-btn {
-      display: block;
-      margin-top: 1.5rem;
+      width: 100%;
       padding: 1rem;
       background-color: #25d366;
       color: white;
       border: none;
       border-radius: 5px;
       font-size: 1.1rem;
+      margin-top: 2rem;
       cursor: pointer;
     }
   </style>
@@ -124,51 +118,48 @@
 
     const pesanan = {};
 
-    function renderMenu(kategori, containerId) {
-      const menuList = document.getElementById(containerId);
+    function renderMenu(kategori, idTarget) {
+      const container = document.getElementById(idTarget);
       menu[kategori].forEach((item, index) => {
-        const id = `${kategori}-${index}`;
-        pesanan[item.nama] = 0;
         const div = document.createElement("div");
         div.className = "menu-item";
         div.innerHTML = `
           <span class="item-name">${item.nama}</span>
           <div class="controls">
-            <button onclick="ubahJumlah('${item.nama}', -1, '${id}')">-</button>
-            <span id="qty-${id}">0</span>
-            <button onclick="ubahJumlah('${item.nama}', 1, '${id}')">+</button>
+            <button onclick="ubahJumlah('${item.nama}', -1)">-</button>
+            <span id="jumlah-${item.nama}">0</span>
+            <button onclick="ubahJumlah('${item.nama}', 1)">+</button>
           </div>
         `;
-        menuList.appendChild(div);
+        container.appendChild(div);
       });
     }
 
-    function ubahJumlah(nama, delta, id) {
-      pesanan[nama] = Math.max(0, (pesanan[nama] || 0) + delta);
-      document.getElementById(`qty-${id}`).textContent = pesanan[nama];
+    function ubahJumlah(nama, delta) {
+      if (!pesanan[nama]) pesanan[nama] = 0;
+      pesanan[nama] = Math.max(0, pesanan[nama] + delta);
+      document.getElementById(`jumlah-${nama}`).innerText = pesanan[nama];
     }
 
     function kirimPesan() {
-      let isiPesan = "Halo, saya mau pesan:%0A";
-      let total = 0;
-      Object.keys(menu).forEach(kategori => {
-        menu[kategori].forEach((item) => {
-          if (pesanan[item.nama] > 0) {
-            isiPesan += `- ${item.nama} x${pesanan[item.nama]}%0A`;
-            total += item.harga * pesanan[item.nama];
-          }
-        });
-      });
-      isiPesan += `%0ATotal: Rp ${total.toLocaleString()}`;
-
-      const nomorWhatsApp = "+6282177183778"; // ganti dengan nomor WA pemilik baru
-      const url = `https://wa.me/${nomorWhatsApp}?text=${isiPesan}`;
-      window.open(url, "_blank");
+      let pesan = "*PESANAN ANGKRINGAN OMAHAN*%0A";
+      for (const kategori in menu) {
+        const items = menu[kategori];
+        const filtered = items.filter(i => pesanan[i.nama] > 0);
+        if (filtered.length > 0) {
+          pesan += `%0A_${kategori.toUpperCase()}_%0A`;
+          filtered.forEach(item => {
+            pesan += `- ${item.nama} (${pesanan[item.nama]})%0A`;
+          });
+        }
+      }
+      const nomorWA = "+6282177183778";
+      window.open(`https://wa.me/${nomorWA}?text=${pesan}`, "_blank");
     }
 
-    renderMenu('makanan', 'menu-makanan');
-    renderMenu('minuman', 'menu-minuman');
-    renderMenu('frozen', 'menu-frozen');
+    renderMenu("makanan", "menu-makanan");
+    renderMenu("minuman", "menu-minuman");
+    renderMenu("frozen", "menu-frozen");
   </script>
 </body>
 </html>
