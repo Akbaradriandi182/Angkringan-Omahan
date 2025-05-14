@@ -6,7 +6,7 @@
   <title>ANGKRINGAN OMAHAN</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Courier New', monospace;
       padding: 1rem;
       background: #fefefe;
     }
@@ -82,8 +82,6 @@
   </div>
 
   <button class="order-btn" onclick="generateStruk()">Lihat Struk & Kirim via WhatsApp</button>
-
-  <div id="struk" style="display:none;"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
@@ -170,54 +168,48 @@
       const jam = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
       let struk = `
-        <div style="font-family: Arial, sans-serif; padding: 10px; text-align: center; border: 2px solid #000; width: 300px; margin: auto;">
-          <h3><b>Angkringan Omahan Trimas</b></h3>
-          <p>Jl. Trimas No.75, Tembilahan</p>
-          <p>No. Telp: 0852 9377 0570</p>
-          <p>${tanggal} ${jam}</p>
-          <hr />
-          <p><b>Nama Pemesan:</b> ${namaPelanggan}</p>
-          <p><b>Nomor Pesanan:</b> #${Math.floor(Math.random() * 10000)}</p>
-          <hr />
-          <h4>Daftar Pesanan:</h4>
-          <ul>`;
-
-      let totalQty = 0;
-      let subtotal = 0;
-
+        Angkringan Omahan Trimas
+        Jl. Trimas No.75, Tembilahan
+        No. Telp: 0852 9377 0570
+        ${tanggal} ${jam}
+        -----------------------------
+      `;
+      let totalHarga = 0;
       for (const kategori in menu) {
         const items = menu[kategori];
         const filtered = items.filter(i => pesanan[i.nama] > 0);
         if (filtered.length > 0) {
+          struk += `${kategori.toUpperCase()}\n`;
           filtered.forEach(item => {
-            const qty = pesanan[item.nama];
-            totalQty += qty;
-            subtotal += qty * item.harga;
-            struk += `<li>${item.nama} - ${qty} x Rp.${item.harga}</li>`;
+            const subtotal = item.harga * pesanan[item.nama];
+            struk += `${item.nama} (${pesanan[item.nama]}) x Rp ${item.harga} = Rp ${subtotal}\n`;
+            totalHarga += subtotal;
           });
+          struk += '-----------------------------\n';
         }
       }
 
-      struk += `</ul><hr /><p><b>Total Quantity (QTY):</b> ${totalQty}</p>
-                <p><b>Subtotal Pembayaran:</b> Rp. ${subtotal}</p></div>`;
+      struk += `Total: Rp ${totalHarga}\n`;
+      struk += `Nama Pemesan: ${namaPelanggan}\n`;
+      struk += '-----------------------------\n';
 
-      document.getElementById("struk").innerHTML = struk;
-      document.getElementById("struk").style.display = "block";
-
-      generatePDF(struk, totalQty, subtotal);
-    }
-
-    function generatePDF(strukContent, totalQty, subtotal) {
+      // Membuat file PDF
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      doc.text(strukContent, 10, 10);
-      doc.save("struk_angkringan.pdf");
+
+      doc.text(struk, 10, 10);
+      const pdfData = doc.output('blob');
+
+      // Kirim via WhatsApp
+      const nomorWA = "6282177183778";
+      const pdfUrl = URL.createObjectURL(pdfData);
+      const encodedPdf = encodeURIComponent(pdfUrl);
+      window.open(`https://wa.me/${nomorWA}?text=${encodedPdf}`, "_blank");
     }
 
     renderMenu("makanan", "menu-makanan");
     renderMenu("minuman", "menu-minuman");
     renderMenu("frozen", "menu-frozen");
   </script>
-
 </body>
 </html>
