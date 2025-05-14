@@ -81,57 +81,60 @@
     <div id="menu-frozen"></div>
   </div>
 
-  <button class="order-btn" onclick="kirimPesan()">Kirim via WhatsApp</button>
+  <button class="order-btn" onclick="generateStruk()">Lihat Struk & Kirim via WhatsApp</button>
 
+  <div id="struk" style="display:none;"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     const menu = {
       makanan: [
-        { nama: "Nasi Bakar Ayam" },
-        { nama: "Nasi Bakar Oseng Teri" },
-        { nama: "Nasi Bakar Cakalang" },
-        { nama: "Nasi Bakar Udang" },
-        { nama: "Nasi Bakar Cumi" },
-        { nama: "Nasi Lemak" },
-        { nama: "Mie Lender" },
+        { nama: "Nasi Bakar Ayam", harga: 10000 },
+        { nama: "Nasi Bakar Oseng Teri", harga: 10000 },
+        { nama: "Nasi Bakar Cakalang", harga: 12000 },
+        { nama: "Nasi Bakar Udang", harga: 15000 },
+        { nama: "Nasi Bakar Cumi", harga: 15000 },
+        { nama: "Nasi Lemak", harga: 8000 },
+        { nama: "Mie Lender", harga: 7000 },
       ],
       minuman: [
-        { nama: "Teh Tarik Dingin" },
-        { nama: "Teh Tarik Panas" },
-        { nama: "Teh Chai" },
-        { nama: "Teh Chai + Telur" },
-        { nama: "Teh Es" },
-        { nama: "Teh Panas" },
-        { nama: "Lemon Tea Dingin" },
-        { nama: "Lemon Tea Panas" },
-        { nama: "Kopi O" },
-        { nama: "Kopi Susu" },
-        { nama: "Kopi Beer" },
-        { nama: "Kopi Jahe" },
-        { nama: "Cappuccino Dingin" },
-        { nama: "Cappuccino Panas" },
-        { nama: "Milo Dingin" },
-        { nama: "Milo Panas" },
-        { nama: "Teh Telur" },
-        { nama: "Teh Telur Tapai" },
-        { nama: "Susu Dingin" },
-        { nama: "Air Mineral" },
+        { nama: "Teh Tarik Dingin", harga: 5000 },
+        { nama: "Teh Tarik Panas", harga: 5000 },
+        { nama: "Teh Chai", harga: 6000 },
+        { nama: "Teh Chai + Telur", harga: 7000 },
+        { nama: "Teh Es", harga: 4000 },
+        { nama: "Teh Panas", harga: 4000 },
+        { nama: "Lemon Tea Dingin", harga: 6000 },
+        { nama: "Lemon Tea Panas", harga: 6000 },
+        { nama: "Kopi O", harga: 7000 },
+        { nama: "Kopi Susu", harga: 8000 },
+        { nama: "Kopi Beer", harga: 12000 },
+        { nama: "Kopi Jahe", harga: 8000 },
+        { nama: "Cappuccino Dingin", harga: 10000 },
+        { nama: "Cappuccino Panas", harga: 10000 },
+        { nama: "Milo Dingin", harga: 8000 },
+        { nama: "Milo Panas", harga: 8000 },
+        { nama: "Teh Telur", harga: 5000 },
+        { nama: "Teh Telur Tapai", harga: 6000 },
+        { nama: "Susu Dingin", harga: 7000 },
+        { nama: "Air Mineral", harga: 3000 },
       ],
       frozen: [
-        { nama: "Sayap" },
-        { nama: "Tahu" },
-        { nama: "Tempe" },
-        { nama: "Telur Puyuh" },
-        { nama: "Hati Ampela" },
-        { nama: "Kulit Ayam" },
-        { nama: "Ceker" },
-        { nama: "Otak-Otak Singapur" },
-        { nama: "Bakso Daging" },
-        { nama: "Bakso Ikan" },
-        { nama: "Bakso Udang" },
-        { nama: "Dumpling Keju" },
-        { nama: "Sosis Kecil" },
-        { nama: "Sosis Jumbo" },
-        { nama: "Kentang Goreng" },
+        { nama: "Sayap", harga: 10000 },
+        { nama: "Tahu", harga: 5000 },
+        { nama: "Tempe", harga: 5000 },
+        { nama: "Telur Puyuh", harga: 7000 },
+        { nama: "Hati Ampela", harga: 8000 },
+        { nama: "Kulit Ayam", harga: 6000 },
+        { nama: "Ceker", harga: 7000 },
+        { nama: "Otak-Otak Singapur", harga: 15000 },
+        { nama: "Bakso Daging", harga: 12000 },
+        { nama: "Bakso Ikan", harga: 12000 },
+        { nama: "Bakso Udang", harga: 15000 },
+        { nama: "Dumpling Keju", harga: 10000 },
+        { nama: "Sosis Kecil", harga: 8000 },
+        { nama: "Sosis Jumbo", harga: 10000 },
+        { nama: "Kentang Goreng", harga: 5000 },
       ]
     };
 
@@ -160,29 +163,61 @@
       document.getElementById(`jumlah-${nama}`).innerText = pesanan[nama];
     }
 
-    function kirimPesan() {
+    function generateStruk() {
       const namaPelanggan = document.getElementById("namaPelanggan").value.trim();
-      let pesan = `*PESANAN ANGKRINGAN OMAHAN*%0A`;
-      if (namaPelanggan) {
-        pesan += `Nama: ${namaPelanggan}%0A`;
-      }
+      const date = new Date();
+      const tanggal = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      const jam = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+
+      let struk = `
+        <div style="font-family: Arial, sans-serif; padding: 10px; text-align: center; border: 2px solid #000; width: 300px; margin: auto;">
+          <h3><b>Angkringan Omahan Trimas</b></h3>
+          <p>Jl. Trimas No.75, Tembilahan</p>
+          <p>No. Telp: 0852 9377 0570</p>
+          <p>${tanggal} ${jam}</p>
+          <hr />
+          <p><b>Nama Pemesan:</b> ${namaPelanggan}</p>
+          <p><b>Nomor Pesanan:</b> #${Math.floor(Math.random() * 10000)}</p>
+          <hr />
+          <h4>Daftar Pesanan:</h4>
+          <ul>`;
+
+      let totalQty = 0;
+      let subtotal = 0;
+
       for (const kategori in menu) {
         const items = menu[kategori];
         const filtered = items.filter(i => pesanan[i.nama] > 0);
         if (filtered.length > 0) {
-          pesan += `%0A_${kategori.toUpperCase()}_%0A`;
           filtered.forEach(item => {
-            pesan += `- ${item.nama} (${pesanan[item.nama]})%0A`;
+            const qty = pesanan[item.nama];
+            totalQty += qty;
+            subtotal += qty * item.harga;
+            struk += `<li>${item.nama} - ${qty} x Rp.${item.harga}</li>`;
           });
         }
       }
-      const nomorWA = "6282177183778";
-      window.open(`https://wa.me/${nomorWA}?text=${pesan}`, "_blank");
+
+      struk += `</ul><hr /><p><b>Total Quantity (QTY):</b> ${totalQty}</p>
+                <p><b>Subtotal Pembayaran:</b> Rp. ${subtotal}</p></div>`;
+
+      document.getElementById("struk").innerHTML = struk;
+      document.getElementById("struk").style.display = "block";
+
+      generatePDF(struk, totalQty, subtotal);
+    }
+
+    function generatePDF(strukContent, totalQty, subtotal) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text(strukContent, 10, 10);
+      doc.save("struk_angkringan.pdf");
     }
 
     renderMenu("makanan", "menu-makanan");
     renderMenu("minuman", "menu-minuman");
     renderMenu("frozen", "menu-frozen");
   </script>
+
 </body>
 </html>
