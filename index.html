@@ -81,7 +81,7 @@
     <div id="menu-frozen"></div>
   </div>
 
-  <button class="order-btn" onclick="generateStruk()">PESAN</button>
+  <button class="order-btn" onclick="generateStruk()">P E S A N</button>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
@@ -139,4 +139,74 @@
     const pesanan = {};
 
     function renderMenu(kategori, idTarget) {
-      const con
+      const container = document.getElementById(idTarget);
+      menu[kategori].forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "menu-item";
+        div.innerHTML = `
+          <span class="item-name">${item.nama}</span>
+          <div class="controls">
+            <button onclick="ubahJumlah('${item.nama}', -1)">-</button>
+            <span id="jumlah-${item.nama}">0</span>
+            <button onclick="ubahJumlah('${item.nama}', 1)">+</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function ubahJumlah(nama, delta) {
+      if (!pesanan[nama]) pesanan[nama] = 0;
+      pesanan[nama] = Math.max(0, pesanan[nama] + delta);
+      document.getElementById(`jumlah-${nama}`).innerText = pesanan[nama];
+    }
+
+    function generateStruk() {
+      const namaPelanggan = document.getElementById("namaPelanggan").value.trim();
+      const date = new Date();
+      const tanggal = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      const jam = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+
+      let struk = `
+        Angkringan Omahan Trimas
+        Jl. Trimas No.75, Tembilahan
+        No. Telp: 0852 9377 0570
+        ${tanggal} ${jam}
+        -----------------------------
+      `;
+      let totalHarga = 0;
+      for (const kategori in menu) {
+        const items = menu[kategori];
+        const filtered = items.filter(i => pesanan[i.nama] > 0);
+        if (filtered.length > 0) {
+          struk += `${kategori.toUpperCase()}\n`;
+          filtered.forEach(item => {
+            const subtotal = item.harga * pesanan[item.nama];
+            struk += `${item.nama} (${pesanan[item.nama]}) x Rp ${item.harga} = Rp ${subtotal}\n`;
+            totalHarga += subtotal;
+          });
+          struk += '-----------------------------\n';
+        }
+      }
+
+      struk += `Total: Rp ${totalHarga}\n`;
+      struk += `Nama Pemesan: ${namaPelanggan}\n`;
+      struk += '-----------------------------\n';
+
+      // Membuat file PDF
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.text(struk, 10, 10);
+      doc.save("struk_angkringan_omahan.pdf"); // Simpan file PDF secara lokal
+
+      // Kirim file via WhatsApp manual
+      alert("Struk telah disiapkan, silakan kirim manual ke WhatsApp.");
+    }
+
+    renderMenu("makanan", "menu-makanan");
+    renderMenu("minuman", "menu-minuman");
+    renderMenu("frozen", "menu-frozen");
+  </script>
+</body>
+</html>
